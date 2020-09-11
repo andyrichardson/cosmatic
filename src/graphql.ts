@@ -1,6 +1,25 @@
 import { getState } from "./state";
 import fetch from "node-fetch";
 
+/** Trigger fetch request with session and token headers */
+export const execFetch = async (...[a, b]: Parameters<typeof fetch>) => {
+  const state = getState();
+  const res = await fetch(a, {
+    ...b,
+    headers: {
+      ...b?.headers,
+      ...(state.sessionId ? { "x-chromatic-session-id": state.sessionId } : {}),
+      ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    throw Error("Network request failed");
+  }
+
+  return await res.json();
+};
+
 /** Execute a GraphQL query */
 const execGraphql = ({
   query,
@@ -35,9 +54,6 @@ const execGraphql = ({
 
 /** Get a token for auth session */
 export const getAuthToken = async () => {
-  // TODO: Remove
-  return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBJZCI6IjVmNWJjNjBkODIyOTEyMDAyMjI2NDFlYSJ9.tAj2oyx-hHPd7UbMVfEM00xFGyoMdTnohFlrtwYYlVU";
-
   const res = await execGraphql({
     query: `
     mutation TesterCreateAppTokenMutation($token: String!) {
@@ -45,10 +61,11 @@ export const getAuthToken = async () => {
     }
   `,
     variables: {
-      token: "[TOKEN]",
+      token: process.env.CHROMATIC_TOKEN,
     },
   });
 
+  console.log(res);
   return res.data.createAppToken;
 };
 
