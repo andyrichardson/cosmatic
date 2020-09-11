@@ -14,6 +14,8 @@ setState((s) => ({
 }));
 console.log(`Starting cosmatic with session id: ${sessionId}`);
 
+// Run upload build
+// https://github.com/chromaui/chromatic-cli/blob/f4c996f2a07339a6383b0c0223cb626402729fef/bin/tasks/index.js#L14
 (async () => {
   const token = await getAuthToken();
   setState((s) => ({

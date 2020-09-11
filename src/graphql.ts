@@ -91,3 +91,78 @@ export const getPaths = async (paths: string[]) => {
   console.log(res);
   return res.data.getUploadUrls;
 };
+
+export const createBuild = async ({
+  input,
+}: {
+  cachedUrl: string;
+  appId: any; // todo - check ObjID on schema
+  autoAcceptChanges: boolean;
+  preserveMissingSpecs: boolean;
+  branch: string;
+  commit: string;
+  committedAt: number;
+  committerEmail: string;
+  committerName: string;
+  baselineCommits: string[];
+  runtimeSpecs: any[]; // todo - check RuntimeSpecInput on schema
+  only: string;
+  fromCI: boolean;
+  isTravisPrBuild: boolean;
+  patchBaseRef: string;
+  patchHeadRef: string;
+  packageVersion: string;
+  storybookVersion: string;
+  viewLayer: string;
+  addons: any[]; // todo - check AddonInput on schema
+  environment: string;
+}) => {
+  const res = await execGraphql({
+    query: `
+      mutation TesterCreateBuildMutation($input: CreateBuildInput!, $isolatorUrl: String!) {
+        createBuild(input: $input, isolatorUrl: $isolatorUrl) {
+          id
+          number
+          specCount
+          snapshotCount
+          componentCount
+          webUrl
+          cachedUrl
+          reportToken
+          features {
+            uiTests
+            uiReview
+          }
+          wasLimited
+          app {
+            account {
+              exceededThreshold
+              paymentRequired
+              billingUrl
+            }
+            repository {
+              provider
+            }
+            setupUrl
+          }
+          snapshots {
+            spec {
+              name
+              component {
+                name
+                displayName
+              }
+            }
+            parameters {
+              viewport
+              viewportIsDefault
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      paths,
+    },
+  });
+};
